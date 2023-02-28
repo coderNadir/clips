@@ -1,37 +1,52 @@
-  <!-- Main Content -->
-  <section class="container mx-auto my-8 bg-secondary p-6">
-    <div class="rounded relative flex flex-col">
-      <div class="font-bold mb-6">Upload Video</div>
-
+<!-- Main Content -->
+<section class="container mx-auto my-8 bg-secondary p-6">
+  <div class="rounded relative flex flex-col">
+    <div class="font-bold mb-6">Upload Video</div>
+    <ng-container>
+      <span
+        *ngIf="!ffmpegService.isReady; else uploadEditorCtr"
+        class="material-icons text-center text-6xl p-8 animate-spin"
+      >
+        settings
+      </span>
+    </ng-container>
+    <ng-template #uploadEditorCtr>
       <!-- Upload Dropbox -->
       <!-- 
-        dragend: when the element is no longer being dragged on
-        dragover: when an element or selection being dragged on the element
-        dragenter: when an element start being dragged on the element
-        dragleave: when the previous dragged element is no longer being dragged over it
-        mouseleave: when mouse is no longer hovering over the element
-        drop: when an element dropped into the element in our case it's the file
-        // -- we will not use drag, dragstart because we don't need them in our case as we are not going to change the element being dragged
-        drag: when the element being applied into it being dragged
-        dragstart: when the element applied to started being dragged
-       -->
-      <div
-        *ngIf="!isVideoDropped; else uploadFormCtr"
-        app-event-blocker
-        (dragend)="isDragover = false"
-        (dragover)="isDragover = true"
-        (dragenter)="isDragover = true"
-        (dragleave)="isDragover = false"
-        (mouseleave)="isDragover = false"
-        (drop)="storeFile($event)"
-        [ngClass]="{
-          'bg-indigo-400 border-indigo-400 border-solid': isDragover
-        }"
-        class="w-full px-10 py-40 rounded text-center cursor-pointer border border-dashed
-          border-gray-400 transition duration-500 hover:text-white
-          hover:bg-indigo-400 hover:border-indigo-400 hover:border-solid text-xl">
-        <h5>Drop your file here (mp4 only!)</h5>
-      </div>
+              dragend: when the element is no longer being dragged on
+              dragover: when an element or selection being dragged on the element
+              dragenter: when an element start being dragged on the element
+              dragleave: when the previous dragged element is no longer being dragged over it
+              mouseleave: when mouse is no longer hovering over the element
+              drop: when an element dropped into the element in our case it's the file
+              // -- we will not use drag, dragstart because we don't need them in our case as we are not going to change the element being dragged
+              drag: when the element being applied into it being dragged
+              dragstart: when the element applied to started being dragged
+             -->
+      <ng-container *ngIf="!isVideoDropped; else uploadFormCtr">
+        <div
+          app-event-blocker
+          (dragend)="isDragover = false"
+          (dragover)="isDragover = true"
+          (dragenter)="isDragover = true"
+          (dragleave)="isDragover = false"
+          (mouseleave)="isDragover = false"
+          (drop)="storeFile($event)"
+          [ngClass]="{
+            'bg-indigo-400 border-indigo-400 border-solid': isDragover
+          }"
+          class="w-full px-10 py-40 rounded text-center cursor-pointer border border-dashed border-gray-400 transition duration-500 hover:text-white hover:bg-indigo-400 hover:border-indigo-400 hover:border-solid text-xl"
+        >
+          <h5>Drop your file here (mp4 only!)</h5>
+          <span
+            *ngIf="ffmpegService.isRunning"
+            class="material-icons text-center text-6xl p-8 animate-spin"
+          >
+            autorenew
+          </span>
+        </div>
+        <input type="file" class="mt-4" (change)="storeFile($event)" />
+      </ng-container>
 
       <!-- Video Editor -->
       <ng-template #uploadFormCtr>
@@ -45,31 +60,43 @@
           <!-- Screenshots -->
           <h2 class="mb-4 text-xl">Select a Thumbnail</h2>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div class="border-8 cursor-pointer border-green-400">
-              <img src="assets/img/1.jpg">
-            </div>
-            <div class="border-8 cursor-pointer border-transparent">
-              <img src="assets/img/2.jpg">
-            </div>
-            <div class="border-8 cursor-pointer border-transparent">
-              <img src="assets/img/3.jpg">
+            <div
+              *ngFor="let screenshot of screenshots"
+              class="border-8 cursor-pointer"
+              [ngClass]="{
+                'border-green-400': screenshot === selectedScreenshot,
+                'border-transparent': screenshot !== selectedScreenshot
+              }"
+              (click)="selectedScreenshot = screenshot"
+            >
+              <img [src]="screenshot | safeURL" />
             </div>
           </div>
 
           <!-- Title -->
           <div class="mt-4">
             <label class="block text-xl mb-4">Title</label>
-            <app-input [control]="titleControl" inputPlaceholder="Enter Title"></app-input>
+            <app-input
+              [control]="titleControl"
+              inputPlaceholder="Enter Title"
+            ></app-input>
           </div>
 
           <div class="mt-4 text-right">
-            <button [disabled]="inSubmission" [ngClass]="{'opacity-50': inSubmission, 'hover:bg-indigo-700': !inSubmission}" type="submit" 
-              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm rounded-md text-white bg-indigo-600 focus:outline-none">
+            <button
+              [disabled]="inSubmission"
+              [ngClass]="{
+                'opacity-50': inSubmission,
+                'hover:bg-indigo-700': !inSubmission
+              }"
+              type="submit"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm rounded-md text-white bg-indigo-600 focus:outline-none"
+            >
               Publish
             </button>
           </div>
         </form>
       </ng-template>
-    </div>
-  </section>
-  
+    </ng-template>
+  </div>
+</section>
